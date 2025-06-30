@@ -19,7 +19,7 @@ df_socio <- read_csv(socio_csv_path)
 old_flash <- read_csv("/Users/finbarrhodes/Documents/GitHub/ST498_CAPSTONE/Notebooks/ANON_ID_w_socio_and_clusters.csv")
 
 ## new setup (added upper 2.5%)
-all_methods_flash <- read_csv("/Users/finbarrhodes/Documents/GitHub/ST498_CAPSTONE/Notebooks/comp_socio_df.csv")
+all_methods_flash <- read_csv("/Users/finbarrhodes/Documents/GitHub/ST498_CAPSTONE/Notebooks/comp_socio_df_02.csv")
 flash <- all_methods_flash[,1:15] # just gets socio features; cluster column still to add
 flash['Group'] <- all_methods_flash[,32]
 peak_kwh_data <- read_csv("/Users/finbarrhodes/Documents/GitHub/ST498_CAPSTONE/Notebooks/peak_kwh.csv")
@@ -123,7 +123,8 @@ socio_dummies <- model.matrix(~ . - 1, data = flash[features])
 socio_dummies <- as.data.frame(socio_dummies)
 
 # Combine features
-X <- cbind(cluster_dummies, socio_dummies)
+X <- cluster_dummies
+# cbind(cluster_dummies, socio_dummies)
 X <- as.matrix(X)
 
 # Split X for train/test
@@ -281,6 +282,7 @@ cf <- causal_forest(
 # Get average treatment effects by cluster
 ate_results <- data.frame()
 
+
 for (cluster_id in unique(flash$Cluster)) {
   cluster_mask <- flash$Cluster == cluster_id
   cluster_X <- X[cluster_mask, ]
@@ -290,7 +292,7 @@ for (cluster_id in unique(flash$Cluster)) {
   cluster_effects <- predictions$predictions
   
   # Calculate confidence intervals (100 - alpha % CI)
-  alpha <- 0.15
+  alpha <- 0.25
   z_score <- qnorm(1 - alpha/2)
   mean_effect <- mean(cluster_effects)
   mean_std_error <- sqrt(mean(predictions$variance.estimates))
@@ -315,7 +317,7 @@ p_ate <- ggplot(ate_results, aes(x = reorder(cluster, effect), y = effect)) +
   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
   geom_hline(yintercept = 0, color = "black", linetype = "solid", alpha = 0.3) +
   labs(
-    title = "Average Treatment Effects by Cluster (with 85% CI)",
+    title = "Treatment Effects by Cluster",
     y = "Treatment Effect (Relative Peak-hour Consumption Change)",
     x = ""
   ) +
