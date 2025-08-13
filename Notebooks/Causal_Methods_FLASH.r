@@ -2,11 +2,6 @@
 library(tidyverse)
 library(grf)  # causal forests
 library(quantregForest)  # quantile regression forests
-library(glmnet)
-library(randomForest)
-library(caret)
-library(lubridate)
-library(ggplot2)
 
 
 # ====== READ DATA ======
